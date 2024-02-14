@@ -1,0 +1,1 @@
+ab -k -c 321 -n 20000 10.0.2.100/ >> ./root/reports/$(date "+%H:%M:%S   %d/%m/%y"-)$(hostname).log
