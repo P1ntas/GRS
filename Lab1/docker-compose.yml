@@ -3,6 +3,13 @@ services:
   nginx: 
     build: ./nginx
     privileged: true
+    deploy:
+      resources:
+        limits:
+          cpus: '0.80'
+          memory: 10M
+        reservations:
+          memory: 6M
     ports:
       - 80
     networks:
@@ -30,6 +37,7 @@ services:
     container_name: router
     hostname: router
     privileged: true
+    tty: true
     volumes:
       - "./reports:/root/reports"
     networks:

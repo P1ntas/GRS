@@ -1,2 +1,2 @@
-5 * * * * ab -k -c 321 -n 20000 10.0.2.100/ >> /root/reports/$(date -d "today")$(hostname).log 2>&1
+5 * * * * ab -k -c 321 -n 20000 10.0.2.100/ >> /root/reports/$(date -d "today")-id-$(hostname).log 2>&1
 
