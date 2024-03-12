@@ -13,8 +13,6 @@ RUN chmod a+w /var/run/quagga
 
 COPY sleep.sh /root/sleep.sh
 RUN chmod +x /root/sleep.sh
-COPY start.sh /root/start.sh
 
 RUN systemctl enable zebra
-
-CMD /root/start.sh
+CMD ["sh", "-c", "chmod +x /root/start.sh && /root/start.sh"]

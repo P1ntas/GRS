@@ -2,4 +2,5 @@
 
 systemctl start zebra
 systemctl start ospfd
+echo "TEEEESTT"
 /root/sleep.sh

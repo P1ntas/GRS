@@ -4,14 +4,14 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    # container_name: client
     privileged: true
     networks:
       public_net:
     command: >
       sh -c "/sbin/ip route replace default via 172.31.255.253 && /root/sleep.sh"
     tty: true
-  router1:
+  #Org1 routers
+  org1_router1: # OSPF + BGP
     build: ./quagga
     privileged: true
     cap_add:
@@ -26,8 +26,9 @@ services:
     volumes:
       - ./quagga/zebra.conf:/etc/quagga/zebra.conf
       - ./quagga/ospfd.conf:/etc/quagga/ospfd.conf
-      - ./quagga/start.sh:/root/start.sh
-  router2:
+      - ./quagga/bgpd-org1.conf:/etc/quagga/bgpd.conf
+      - ./quagga/start-ospf-bgp.sh:/root/start.sh
+  org1_router2: # OSPF
     build: ./quagga
     privileged: true
     cap_add:
@@ -42,8 +43,8 @@ services:
     volumes:
       - ./quagga/zebra.conf:/etc/quagga/zebra.conf
       - ./quagga/ospfd.conf:/etc/quagga/ospfd.conf
-      - ./quagga/start.sh:/root/start.sh
-  router3:
+      - ./quagga/start-ospf.sh:/root/start.sh
+  org1_router3: # OSPF
     build: ./quagga
     privileged: true
     cap_add:
@@ -58,7 +59,8 @@ services:
     volumes:
       - ./quagga/zebra.conf:/etc/quagga/zebra.conf
       - ./quagga/ospfd.conf:/etc/quagga/ospfd.conf
-      - ./quagga/start.sh:/root/start.sh
+      - ./quagga/start-ospf.sh:/root/start.sh
+  # Org1 servers
   org1_server1:
     build:
       context: .
@@ -70,7 +72,6 @@ services:
       sh -c "/sbin/ip r del default via 172.16.123.129 && /sbin/ip r add default via 172.16.123.142 && /root/sleep.sh"
     cap_add:
       - NET_ADMIN
-
   org1_server2:
     build:
       context: .
@@ -82,112 +83,103 @@ services:
       sh -c "/sbin/ip r del default via 172.16.123.145 && /sbin/ip r add default via 172.16.123.158 && /root/sleep.sh"
     cap_add:
       - NET_ADMIN
-# Add BGP to network
-client2:
-  build:
-    context: .
-    dockerfile: Dockerfile
-  # container_name: client
-  privileged: true
-  networks:
-    public_net:
-  command: >
-    sh -c "/sbin/ip route replace default via 172.31.255.252 && /root/sleep.sh"
-  tty: true
-router1_4:
-  build: ./quagga
-  privileged: true
-  cap_add:
-    - NET_ADMIN
-  networks:
-    org2_int1_net:
-      ipv4_address: 10.0.2.2
-    org2_int2_net:
-      ipv4_address: 10.0.2.10
-    public_net:
-      ipv4_address: 172.31.255.252
-  volumes:
-    - ./quagga/zebra.conf:/etc/quagga/zebra.conf
-    - ./quagga/ospfd.conf:/etc/quagga/ospfd.conf
-    - ./quagga/start.sh:/root/start.sh
-router2_5:
-  build: ./quagga
-  privileged: true
-  cap_add:
-    - NET_ADMIN
-  networks:
-    org2_int2_net:
-      ipv4_address: 10.0.2.11
-    org2_int3_net:
-      ipv4_address: 10.0.2.18
-    org2_pub2_net:
-      ipv4_address: 172.16.123.158
-  volumes:
-    - ./quagga/zebra.conf:/etc/quagga/zebra.conf
-    - ./quagga/ospfd.conf:/etc/quagga/ospfd.conf
-    - ./quagga/start.sh:/root/start.sh
-router3_6:
-  build: ./quagga
-  privileged: true
-  cap_add:
-    - NET_ADMIN
-  networks:
-    org2_int1_net:
-      ipv4_address: 10.0.2.3
-    org2_int3_net:
-      ipv4_address: 10.0.2.19
-    org2_pub1_net:
-      ipv4_address: 172.16.123.17
-  volumes:
-    - ./quagga/zebra.conf:/etc/quagga/zebra.conf
-    - ./quagga/ospfd.conf:/etc/quagga/ospfd.conf
-    - ./quagga/start.sh:/root/start.sh
-org2_server1:
-  build:
-    context: .
-    dockerfile: Dockerfile
-  networks:
-    org2_pub1_net:
-      ipv4_address: 172.16.123.17
-  command: >
-    sh -c "/sbin/ip r del default via 172.16.123.129 && /sbin/ip r add default via 172.16.123.142 && /root/sleep.sh"
-  cap_add:
-    - NET_ADMIN
-
-org2_server2:
-  build:
-    context: .
-    dockerfile: Dockerfile
-  networks:
-    org2_pub2_net:
-      ipv4_address: 172.16.123.146
-  command: >
-    sh -c "/sbin/ip r del default via 172.16.123.145 && /sbin/ip r add default via 172.16.123.158 && /root/sleep.sh"
-  cap_add:
-    - NET_ADMIN
+  # Org2 routers
+  org2_router1: # OSPF + BGP
+    build: ./quagga
+    privileged: true
+    cap_add:
+      - NET_ADMIN
+    networks:
+      org2_int1_net:
+        ipv4_address: 10.0.2.2
+      org2_int2_net:
+        ipv4_address: 10.0.2.10
+      public_net:
+        ipv4_address: 172.31.255.252
+    volumes:
+      - ./quagga/zebra.conf:/etc/quagga/zebra.conf
+      - ./quagga/ospfd.conf:/etc/quagga/ospfd.conf
+      - ./quagga/bgpd-org2.conf:/etc/quagga/bgpd.conf
+      - ./quagga/start-ospf-bgp.sh:/root/start.sh
+  org2_router2: # OSPF
+    build: ./quagga
+    privileged: true
+    cap_add:
+      - NET_ADMIN
+    networks:
+      org2_int2_net:
+        ipv4_address: 10.0.2.11
+      org2_int3_net:
+        ipv4_address: 10.0.2.18
+      org2_pub1_net:
+        ipv4_address: 172.16.123.14
+    volumes:
+      - ./quagga/zebra.conf:/etc/quagga/zebra.conf
+      - ./quagga/ospfd.conf:/etc/quagga/ospfd.conf
+      - ./quagga/start-ospf.sh:/root/start.sh
+  org2_router3: # OSPF
+    build: ./quagga
+    privileged: true
+    cap_add:
+      - NET_ADMIN
+    networks:
+      org2_int1_net:
+        ipv4_address: 10.0.2.3
+      org2_int3_net:
+        ipv4_address: 10.0.2.19
+      org2_pub2_net:
+        ipv4_address: 172.16.123.30
+    volumes:
+      - ./quagga/zebra.conf:/etc/quagga/zebra.conf
+      - ./quagga/ospfd.conf:/etc/quagga/ospfd.conf
+      - ./quagga/start-ospf.sh:/root/start.sh
+  # Org2 servers
+  org2_server1:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    networks:
+      org2_pub1_net:
+        ipv4_address: 172.16.123.2
+    command: >
+      sh -c "/sbin/ip r del default via 172.16.123.129 && /sbin/ip r add default via 172.16.123.142 && /root/sleep.sh"
+    cap_add:
+      - NET_ADMIN
+  org2_server2:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    networks:
+      org2_pub2_net:
+        ipv4_address: 172.16.123.18
+    command: >
+      sh -c "/sbin/ip r del default via 172.16.123.145 && /sbin/ip r add default via 172.16.123.158 && /root/sleep.sh"
+    cap_add:
+      - NET_ADMIN
 networks:
   public_net:
     ipam:
       config:
         - subnet: 172.31.255.0/24
           gateway: 172.31.255.254
+  # Org1 Networks
   org1_int1_net:
     ipam:
       config:
-        - subnet: 10.0.2.0/29
-          gateway: 10.0.2.1
+        - subnet: 10.0.1.0/29
+          gateway: 10.0.1.1
 
   org1_int2_net:
     ipam:
       config:
-        - subnet: 10.0.2.8/29
-          gateway: 10.0.2.9
+        - subnet: 10.0.1.8/29
+          gateway: 10.0.1.9
 
   org1_int3_net:
     ipam:
       config:
-        - subnet: 10.0.2.16/29
-          gateway: 10.0.2.17
+        - subnet: 10.0.1.16/29
+          gateway: 10.0.1.17
 
   org1_pub1_net:
     ipam:
@@ -200,33 +192,29 @@ networks:
       config:
         - subnet: 172.16.123.144/28
           gateway: 172.16.123.145
-  
+  # Org2 Networks
   org2_int1_net:
     ipam:
       config:
         - subnet: 10.0.2.0/29
           gateway: 10.0.2.1
-
   org2_int2_net:
     ipam:
       config:
         - subnet: 10.0.2.8/29
           gateway: 10.0.2.9
-
   org2_int3_net:
     ipam:
       config:
         - subnet: 10.0.2.16/29
           gateway: 10.0.2.17
-
-  org2_pub1_net:
+  org2_pub1_net: # Right side network
     ipam:
       config:
-        - subnet: 172.16.123.128/28
-          gateway: 172.16.123.129
-
-  org2_pub2_net:
+        - subnet: 172.16.123.0/28
+          gateway: 172.16.123.1
+  org2_pub2_net: # Left side network
     ipam:
       config:
-        - subnet: 172.16.123.144/28
-          gateway: 172.16.123.145
+        - subnet: 172.16.123.16/28
+          gateway: 172.16.123.17
