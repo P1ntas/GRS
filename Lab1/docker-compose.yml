@@ -5,8 +5,6 @@ services:
     privileged: true
     ports:
       - 80
-    environment:
-      - DOCKER_HOST=unix:///run/docker.sock
     deploy:
       replicas: 4
       resources:
