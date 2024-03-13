@@ -1,0 +1,67 @@
+version: '3'
+services:
+  nginx_web_server: 
+    build: ./nginx
+    privileged: true
+    ports:
+      - 80
+    environment:
+      - DOCKER_HOST=unix:///run/docker.sock
+    deploy:
+      replicas: 4
+      resources:
+        limits:
+          cpus: '0.80'
+          memory: 10M
+        reservations:
+          memory: 6M
+    networks:
+      - server_net
+  load_balancer:
+    build: ./loadBalancer
+    ports:
+      - 80
+    networks:
+      - server_net
+    depends_on:
+      - nginx_web_server
+  client:
+    build: ./baseimage
+    # container_name: client
+    privileged: true
+    networks:
+      client_net:
+    deploy:
+      replicas: 4
+    command: >
+      sh -c "/sbin/ip route replace default via 10.0.1.254 && /root/sleep.sh"
+    tty: true
+    volumes:
+      - "./reports:/root/reports"
+    depends_on:
+      - router
+
+  router:
+    build: ./baseimage
+    container_name: router
+    hostname: router
+    privileged: true
+    tty: true
+    volumes:
+      - "./reports:/root/reports"
+    networks:
+      client_net:
+        ipv4_address: 10.0.1.254
+      server_net:
+        ipv4_address: 10.0.2.254
+networks:
+  client_net:
+    ipam:
+      config:
+        - subnet: 10.0.1.0/24
+          gateway: 10.0.1.1
+  server_net:
+    ipam:
+      config:
+        - subnet: 10.0.2.0/24
+          gateway: 10.0.2.1
