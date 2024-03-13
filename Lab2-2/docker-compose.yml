@@ -142,7 +142,7 @@ services:
       org2_pub1_net:
         ipv4_address: 172.16.123.2
     command: >
-      sh -c "/sbin/ip r del default via 172.16.123.129 && /sbin/ip r add default via 172.16.123.142 && /root/sleep.sh"
+      sh -c "/sbin/ip r del default via 172.16.123.1 && /sbin/ip r add default via 172.16.123.14 && /root/sleep.sh"
     cap_add:
       - NET_ADMIN
   org2_server2:
@@ -153,7 +153,7 @@ services:
       org2_pub2_net:
         ipv4_address: 172.16.123.18
     command: >
-      sh -c "/sbin/ip r del default via 172.16.123.145 && /sbin/ip r add default via 172.16.123.158 && /root/sleep.sh"
+      sh -c "/sbin/ip r del default via 172.16.123.17 && /sbin/ip r add default via 172.16.123.30 && /root/sleep.sh"
     cap_add:
       - NET_ADMIN
 networks:
