@@ -5,18 +5,17 @@ services:
     privileged: true
     ports:
       - 80
-    environment:
-      - DOCKER_HOST=unix:///run/docker.sock
-    deploy:
-      replicas: 4
-      resources:
-        limits:
-          cpus: '0.80'
-          memory: 10M
-        reservations:
-          memory: 6M
     networks:
-      - server_net
+      server_net:
+        ipv4_address: 10.0.2.101
+    command: sh -c "/sbin/ip route replace default via 10.0.2.254 && nginx -g 'daemon off;'"
+  proxy:
+    build: ./ectsquid
+    privileged: true
+    networks:
+      client_net:
+        ipv4_address: 10.0.1.253
+    #command: sh -c "/sbin/ip route replace default via 10.0.1.254 && /usr/sbin/squid -Nz"
   load_balancer:
     build: ./loadBalancer
     ports:
@@ -31,8 +30,7 @@ services:
     privileged: true
     networks:
       client_net:
-    deploy:
-      replicas: 4
+       ipv4_address: 10.0.1.100
     command: >
       sh -c "/sbin/ip route replace default via 10.0.1.254 && /root/sleep.sh"
     tty: true
@@ -40,7 +38,6 @@ services:
       - "./reports:/root/reports"
     depends_on:
       - router
-
   router:
     build: ./baseimage
     container_name: router
@@ -49,6 +46,8 @@ services:
     tty: true
     volumes:
       - "./reports:/root/reports"
+    command: >
+      sh -c "/sbin/iptables -t filter -A FORWARD -p tcp --dport 80 ! -s 10.0.1.253 -j DROP && /root/sleep.sh"
     networks:
       client_net:
         ipv4_address: 10.0.1.254
