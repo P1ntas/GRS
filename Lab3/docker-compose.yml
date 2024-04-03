@@ -30,6 +30,7 @@ services:
       - "./reports:/root/reports"
     depends_on:
       - router
+      - bind9_myorg_auth
   external_host:
     build: ./baseimage
     # container_name: client
@@ -84,6 +85,22 @@ services:
         ipv4_address: 172.16.123.139
       public_net:
         ipv4_address: 172.31.255.253
+  bind9_myorg_auth:
+    image: internetsystemsconsortium/bind9:9.16
+    container_name: bind9_myorg_auth
+    volumes:
+      - ./etcbind/db.myorg.net:/etc/bind/db.myorg.net
+      - ./etcbind/named.conf.local:/etc/bind/named.conf.local
+      - /var/lib/bind
+      - /var/cache/bind 
+    cap_add:
+      - NET_ADMIN
+    networks:
+      dmz_net:
+        ipv4_address: 172.16.123.129
+    command: >
+      /bin/sh -c "ip r d default via 172.16.123.140 &&
+                  ip r a default via 172.16.123.139"
 networks:
   client_net:
     ipam:
@@ -99,7 +116,7 @@ networks:
     ipam:
       config:
         - subnet: 172.16.123.128/28
-          gateway: 172.16.123.129
+          gateway: 172.16.123.140
   public_net:
     ipam:
       config:
