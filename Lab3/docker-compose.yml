@@ -86,8 +86,8 @@ services:
       public_net:
         ipv4_address: 172.31.255.253
   bind9_myorg_auth:
-    image: internetsystemsconsortium/bind9:9.16
     container_name: bind9_myorg_auth
+    build: ./etcbind
     volumes:
       - ./etcbind/db.myorg.net:/etc/bind/db.myorg.net
       - ./etcbind/named.conf.local:/etc/bind/named.conf.local
@@ -95,12 +95,13 @@ services:
       - /var/cache/bind 
     cap_add:
       - NET_ADMIN
+    privileged: true
     networks:
       dmz_net:
         ipv4_address: 172.16.123.129
-    command: >
-      /bin/sh -c "ip r d default via 172.16.123.140 &&
-                  ip r a default via 172.16.123.139"
+    #command: >
+    #  /bin/sh -c "ip r d default via 172.16.123.140 &&
+    #              ip r a default via 172.16.123.139"
 networks:
   client_net:
     ipam:
