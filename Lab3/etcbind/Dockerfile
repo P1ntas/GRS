@@ -1,2 +1,6 @@
 FROM internetsystemsconsortium/bind9:9.16
-COPY ./entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY ./start.sh /root/start.sh
+
+ENTRYPOINT [ ]
+RUN chmod +x /root/start.sh
+CMD "/root/start.sh"
