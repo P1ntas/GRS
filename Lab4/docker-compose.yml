@@ -1,0 +1,140 @@
+version: '3'
+services:
+  nginx_web_server: 
+    build: ./nginx
+    privileged: true
+    ports:
+      - 80
+    networks:
+      server_net:
+        ipv4_address: 10.0.2.101
+    command: sh -c "/sbin/ip route replace default via 10.0.2.254 && nginx -g 'daemon off;'"
+  proxy:
+    build: ./ectsquid
+    privileged: true
+    networks:
+      client_net:
+        ipv4_address: 10.0.1.253
+    #command: sh -c "/sbin/ip route replace default via 10.0.1.254 && /usr/sbin/squid -Nz"
+  client:
+    build: ./baseimage
+    # container_name: client
+    privileged: true
+    networks:
+      client_net:
+       ipv4_address: 10.0.1.100
+    command: >
+      sh -c "/sbin/ip route replace default via 10.0.1.254 && /root/sleep.sh"
+    tty: true
+    volumes:
+      - "./reports:/root/reports"
+    depends_on:
+      - router
+      - bind9_myorg_auth
+  external_host:
+    build: ./baseimage
+    # container_name: client
+    privileged: true
+    networks:
+      public_net:
+       ipv4_address: 172.31.255.100
+    command: >
+      sh -c "/sbin/ip r a 172.16.123.128/28 via 172.31.255.253 && /root/sleep.sh"
+    tty: true
+    volumes:
+      - "./reports:/root/reports"
+    depends_on:
+      - router
+  router:
+    build: ./baseimage
+    container_name: router
+    hostname: router
+    privileged: true
+    tty: true
+    volumes:
+      - "./reports:/root/reports"
+    command: >
+      sh -c "/sbin/ip r d default via 10.0.1.1 && ip r a default via 172.16.123.139 && /root/sleep.sh"
+    networks:
+      client_net:
+        ipv4_address: 10.0.1.254
+      server_net:
+        ipv4_address: 10.0.2.254
+      dmz_net:
+        ipv4_address: 172.16.123.142
+  edge_router:
+    build: ./baseimage
+    container_name: edge_router
+    hostname: router
+    privileged: true
+    tty: true
+    volumes:
+      - "./reports:/root/reports"
+    command: >
+      sh -c "/sbin/ip r d default via 172.16.123.140 && 
+        ip r a default via 172.31.255.254 && 
+        iptables -t nat -F; iptables -t filter -F && 
+        iptables -t nat -A POSTROUTING -s 10.0.0.0/8 -o eth1 -j MASQUERADE && 
+        iptables -P FORWARD DROP && iptables -A FORWARD -m state --state ESTABLISHED,RELATED -j ACCEPT &&
+        iptables -A FORWARD -m state --state NEW -i eth0  -j ACCEPT && 
+        iptables -A FORWARD -m state --state NEW -i eth1 -d 172.16.123.128/28 -j ACCEPT &&
+        ip r a 10.0.0.0/8 via 172.16.123.142 && 
+        root/sleep.sh"
+    networks:
+      dmz_net:
+        ipv4_address: 172.16.123.139
+      public_net:
+        ipv4_address: 172.31.255.253
+  bind9_myorg_auth:
+    container_name: bind9_myorg_auth
+    build: ./etcbind
+    volumes:
+      - ./etcbind/db.myorg.net:/etc/bind/db.myorg.net
+      - ./etcbind/named.conf.local:/etc/bind/named.conf.local
+      - /var/lib/bind
+      - /var/cache/bind 
+    cap_add:
+      - NET_ADMIN
+    privileged: true
+    networks:
+      dmz_net:
+        ipv4_address: 172.16.123.129
+    #command: >
+    #  /bin/sh -c "ip r d default via 172.16.123.140 &&
+    #              ip r a default via 172.16.123.139"
+  nagios:
+    build: ./nagios
+    container_name: noc
+    hostname: noc
+    ports:
+      - 8081:80
+    environment:
+      - NAGIOSADMIN_USER=nagiosadmin
+      - NAGIOSAMDIN_PASS=nagios
+    volumes:
+      - ./nagios/etc/:/opt/nagios/etc/
+    networks:
+      dmz_net:
+        ipv4_address: 172.16.123.130
+        
+networks:
+  client_net:
+    ipam:
+      config:
+        - subnet: 10.0.1.0/24
+          gateway: 10.0.1.1
+  server_net:
+    ipam:
+      config:
+        - subnet: 10.0.2.0/24
+          gateway: 10.0.2.1
+  dmz_net:
+    ipam:
+      config:
+        - subnet: 172.16.123.128/28
+          gateway: 172.16.123.140
+  public_net:
+    ipam:
+      config:
+        - subnet: 172.31.255.0/24
+          gateway: 172.31.255.254
