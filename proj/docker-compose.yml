@@ -110,6 +110,7 @@ services:
       - NAGIOSAMDIN_PASS=nagios
     volumes:
       - ./nagios/etc/:/opt/nagios/etc/
+      - /var/run/docker.sock:/var/run/docker.sock
     cap_add:
       - NET_ADMIN
     privileged: true
@@ -118,6 +119,8 @@ services:
     networks:
       dmz_net:
         ipv4_address: 172.16.123.130
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
         
 networks:
   client_net:
