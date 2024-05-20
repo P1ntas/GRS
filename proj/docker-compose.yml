@@ -1,14 +1,16 @@
 version: '3'
 services:
-  nginx_web_server: 
-    build: ./nginx
+  node_web_server: 
+    build: ./node
     privileged: true
     ports:
-      - 80
+      - "3000:3000"
+    volumes:
+      - ./node:/app
     networks:
       server_net:
         ipv4_address: 10.0.2.101
-    command: sh -c "/sbin/ip route replace default via 10.0.2.254 && nginx -g 'daemon off;'"
+    #command: sh -c "/sbin/ip route replace default via 10.0.2.254"
   proxy:
     build: ./ectsquid
     privileged: true
@@ -99,6 +101,7 @@ services:
     networks:
       dmz_net:
         ipv4_address: 172.16.123.129
+    platform: linux/amd64
   nagios:
     build: ./nagios
     container_name: noc
@@ -118,6 +121,7 @@ services:
     networks:
       dmz_net:
         ipv4_address: 172.16.123.130
+    platform: linux/amd64
         
 networks:
   client_net:

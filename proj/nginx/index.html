@@ -3,14 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nginx Server Identifier</title>
+    <title>Change Response</title>
 </head>
 <body>
-    <h1>Welcome to Nginx Server!</h1>
-    <p>This is server: <strong id="server-id">unknown</strong></p>
+    <h1>Welcome to Nginx</h1>
+    <button id="errorButton">Trigger 500 Error</button>
+
     <script>
-        // This script sets the content of the <strong> tag to the hostname of the container
-        document.getElementById('server-id').textContent = window.location.port;
+        document.getElementById('errorButton').onclick = function() {
+            fetch('/trigger-error', { method: 'POST' })
+                .then(response => {
+                    if (response.status === 500) {
+                        alert('Error triggered successfully!');
+                    } else {
+                        alert('Failed to trigger error.');
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        };
     </script>
 </body>
 </html>
