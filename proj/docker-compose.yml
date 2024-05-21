@@ -3,14 +3,16 @@ services:
   node_web_server: 
     build: ./node
     privileged: true
+    cap_add:
+      - NET_ADMIN
     ports:
-      - "3000:3000"
+      - "80:80"
     volumes:
       - ./node:/app
     networks:
       server_net:
         ipv4_address: 10.0.2.101
-    #command: sh -c "/sbin/ip route replace default via 10.0.2.254"
+    # command: sh -c "/sbin/ip route replace default via 10.0.2.254 && npm run start"
   proxy:
     build: ./ectsquid
     privileged: true
