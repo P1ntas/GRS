@@ -3,6 +3,9 @@ RUN apt update && apt install -y nagios-nrpe-plugin vim iproute2 iputils-ping tc
 #Install docker sdk for python
 RUN pip3 install docker
 
+# Uninstall current version of requests and install version 2.31.0
+RUN pip3 uninstall -y requests && pip3 install requests==2.31.0
+
 COPY sasl_passwd /etc/postfix/sasl_passwd
 COPY sasl_passwd.db /etc/postfix/sasl_passwd.db
 
@@ -14,8 +17,10 @@ RUN chown -R root:root /opt/nagios/libexec/eventhandlers
 COPY ./resolution_scripts /opt/nagios/resolution_scripts
 RUN chmod +x /opt/nagios/libexec/eventhandlers/*
 
-COPY ./plugins /opt/nagios/libexec/
-RUN chmod +x /opt/nagios/libexec/*
+
+
+# COPY ./plugins /opt/nagios/libexec/
+# RUN chmod +x /opt/nagios/libexec/*
 
 #RUN ln –s check_cpu check_load && ln –s check_cpu check_ram && ln –s check_cpu check_swap
 

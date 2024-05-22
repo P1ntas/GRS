@@ -12,7 +12,7 @@ services:
     networks:
       server_net:
         ipv4_address: 10.0.2.101
-    # command: sh -c "/sbin/ip route replace default via 10.0.2.254 && npm run start"
+    command: sh -c "/sbin/ip route replace default via 10.0.2.254 && npm run start"
   proxy:
     build: ./ectsquid
     privileged: true
@@ -124,7 +124,8 @@ services:
     networks:
       dmz_net:
         ipv4_address: 172.16.123.130
-    platform: linux/amd64
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
         
 networks:
   client_net:
