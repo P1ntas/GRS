@@ -45,6 +45,7 @@ CRITICAL)
 		3)
 			echo -n "Restarting webserver service (3rd soft critical state)..."
             python3 /opt/nagios/resolution_scripts/restart_container.py proj-node_web_server-1 
+			/usr/bin/printf "%b" "***** Nagios *****\n\nNotification Type: Restart\nHost: SHIT\nState: TESTE\nAddress: TEste\nInfo: RESTART\n\nDate/Time: FASF\n" | /usr/bin/mail -s "** ERROR Host Alert: TESTE is ETAE **" ETAET
 			;;
 			esac
 		;;
