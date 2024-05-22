@@ -126,6 +126,7 @@ services:
         ipv4_address: 172.16.123.130
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    platform: linux/amd64
         
 networks:
   client_net:
