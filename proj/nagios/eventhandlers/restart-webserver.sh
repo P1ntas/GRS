@@ -44,7 +44,8 @@ CRITICAL)
 		# fixed the problem!
 		3)
 			echo -n "Restarting webserver service (3rd soft critical state)..."
-            python3 /opt/nagios/resolution_scripts/restart_container.py proj-nginx_web_server-1 
+            python3 /opt/nagios/resolution_scripts/restart_container.py proj-node_web_server-1 
+			/usr/bin/printf "%b" "***** Nagios *****\n\nNotification Type: Auto restart\nHost: node web server\nAddress: 10.0.2.101\nInfo: Container restarted after $ATTEMPT on state $STATE \n\nDate/Time: $(date)$\n" | /usr/bin/mail -s "** Host Alert: Node web server RESTART **" gestaoredesesistemas@gmail.com
 			;;
 			esac
 		;;
@@ -56,7 +57,8 @@ CRITICAL)
 	# point (unless you disabled notifications for this service)
 	HARD)
 		echo -n "Restarting webserver service..." >> /tmp/event_handler_test.log
-        python3 /opt/nagios/resolution_scripts/restart_container.py proj-nginx_web_server-1
+        python3 /opt/nagios/resolution_scripts/restart_container.py proj-node_web_server-1
+		/usr/bin/printf "%b" "***** Nagios *****\n\nNotification Type: Auto restart\nHost: node web server\nAddress: 10.0.2.101\nInfo: Container restarted after $ATTEMPT on state $STATE \n\nDate/Time: $(date)$\n" | /usr/bin/mail -s "** Host Alert: Node web server RESTART **" gestaoredesesistemas@gmail.com
 		;;
 	esac
 	;;
