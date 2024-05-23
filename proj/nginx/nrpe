@@ -1,0 +1,15 @@
+# default: off
+# description: NRPE (Nagios Remote Plugin Executor)
+service nrpe
+{
+    disable         = no
+    socket_type     = stream
+    port            = 5666
+    wait            = no
+    user            = nagios
+    group           = nagios
+    server          = /usr/local/nagios/bin/nrpe
+    server_args     = -c /usr/local/nagios/etc/nrpe.cfg --inetd
+    # only_from       = 127.0.0.1,172.16.123.130
+    log_on_success  = 
+}
